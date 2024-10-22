@@ -27,6 +27,14 @@ const broadcastMessage = (message) => {
   });
 };
 
+console.log('Database Config:', {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    database: process.env.DB_NAME,
+    user: process.env.DB_USER,  // Check if this outputs the correct user
+    password: process.env.DB_PASSWORD  // Ensure the password is not undefined or empty
+  });
+  
 // Route to fetch all messages
 app.get('/messages', async (req, res) => {
   try {
