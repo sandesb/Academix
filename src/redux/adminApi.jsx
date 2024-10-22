@@ -1,35 +1,27 @@
-// src/redux/adminApi.js
-import { createApi } from '@reduxjs/toolkit/query/react';
-import supabase from '../config/supabaseClient';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// Base query for Supabase
-const supabaseBaseQuery = async ({ url, method, body }) => {
-  let supabaseQuery;
-  switch (method) {
-    case 'select':
-      supabaseQuery = supabase.from(url).select(body);
-      break;
-    default:
-      return { error: { status: 'CUSTOM_ERROR', data: 'Invalid method' } };
-  }
-
-  const { data, error } = await supabaseQuery;
-  if (error) {
-    console.error('Error in Supabase query:', error);
-    return { error: { status: 'CUSTOM_ERROR', data: error.message } };
-  }
-
-  return { data };
-};
+// Define the base URL for your Express server
+const baseQuery = fetchBaseQuery({
+  baseUrl: 'http://localhost:5000', // Your Express server URL
+  prepareHeaders: (headers) => {
+    headers.set('Content-Type', 'application/json');
+    return headers;
+  },
+});
 
 // Create adminApi
 export const adminApi = createApi({
   reducerPath: 'adminApi',
-  baseQuery: supabaseBaseQuery,
+  baseQuery: baseQuery,
   tagTypes: ['Admin'],
   endpoints: (builder) => ({
+    // Fetch only email and password from the admin table
     getAdminCredentials: builder.query({
-      query: () => ({ url: 'admin', method: 'select', body: 'email, password' }), // Fetch admin credentials from the "admin" table
+      query: () => '/admin', // Call the Express endpoint to fetch all admin
+      transformResponse: (response) => response.map(admin => ({
+        email: admin.email,
+        password: admin.password,
+      })), // Transform the response to return only email and password fields
       providesTags: ['Admin'],
     }),
   }),

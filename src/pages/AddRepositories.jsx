@@ -54,24 +54,24 @@ const AddRepositories = () => {
   }, []);
 
   useEffect(() => {
-    if (id && repoData && repoData.length > 0) {
-      const repoDetails = repoData[0];
+    if (id && repoData) {
       setFormData({
-        title: repoDetails.title || "",
-        abstract: repoDetails.abstract || "",
-        source_name: repoDetails.source_name || "",
+        title: repoData.title || "",
+        abstract: repoData.abstract || "",
+        source_name: repoData.source_name || "",
         image_file: null,
-        image_url: repoDetails.image_url || "",
+        image_url: repoData.image_url || "",
         project_report_file: null,
-        project_report_url: repoDetails.project_report_url || "",
-        project_source_code_url: repoDetails.project_source_code_url || "",
-        matric: repoDetails.matric || "",
-        frontend_tech: repoDetails.frontend_tech || [],
-        backend_tech: repoDetails.backend_tech || [],
-        database_tech: repoDetails.database_tech || [],
+        project_report_url: repoData.project_report_url || "",
+        project_source_code_url: repoData.project_source_code_url || "",
+        matric: repoData.matric || "",
+        frontend_tech: repoData.tech_stack?.frontend?.split(', ') || [], // Converting string to array
+        backend_tech: repoData.tech_stack?.backend?.split(', ') || [], // Converting string to array
+        database_tech: repoData.tech_stack?.database?.split(', ') || [], // Converting string to array
       });
     }
   }, [id, repoData]);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;

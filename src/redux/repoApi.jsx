@@ -1,89 +1,64 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-import supabase from '../config/supabaseClient';
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// Base query for Supabase
-const supabaseBaseQuery = async ({ url, method, body, params }) => {
-  let supabaseQuery;
-  switch (method) {
-    case 'select':
-      supabaseQuery = supabase.from(url).select(body);
-      if (params?.id) {
-        supabaseQuery = supabaseQuery.eq('id', params.id);
-      }
-      break;
-    case 'insert':
-      supabaseQuery = supabase.from(url).insert(body);
-      break;
-    case 'update':
-      supabaseQuery = supabase.from(url).update(body).eq('id', params.id);
-      break;
-    case 'delete':
-      supabaseQuery = supabase.from(url).delete().eq('id', params.id);
-      break;
-    default:
-      return { error: { status: 'CUSTOM_ERROR', data: 'Invalid method' } };
-  }
-
-  const { data, error } = await supabaseQuery;
-  if (error) {
-    console.error('Error in Supabase query:', error);
-    return { error: { status: 'CUSTOM_ERROR', data: error.message } };
-  }
-
-  return { data };
-};
+// Define the base URL for your Express server
+const baseQuery = fetchBaseQuery({
+  baseUrl: 'http://localhost:5000', // Update this URL to match your production server when deployed
+  prepareHeaders: (headers) => {
+    headers.set('Content-Type', 'application/json');
+    return headers;
+  },
+});
 
 // Create repoApi
 export const repoApi = createApi({
   reducerPath: 'repoApi',
-  baseQuery: supabaseBaseQuery,
+  baseQuery: baseQuery,
   tagTypes: ['Repositories'],
   endpoints: (builder) => ({
+    // Fetch all repositories
     getRepos: builder.query({
-      query: () => ({
-        url: 'repositories',
-        method: 'select',
-        body: 'matric, id, title, source_name, image_url, abstract, project_report_url, tech_stack',
-      }),
+      query: () => '/repositories', // Fetch all repositories from Express backend
       providesTags: ['Repositories'],
     }),
+
+    // Fetch a repository by ID
     getRepoById: builder.query({
-      query: (id) => ({
-        url: 'repositories',
-        method: 'select',
-        body: 'id, matric, title, abstract, source_name, image_url, project_source_code_url, project_report_url, tech_stack',
-        params: { id },
-      }),
-      providesTags: ['Repositories'],
+      query: (id) => `/repositories/${id}`, // Fetch a repository by ID
+      providesTags: (result, error, id) => [{ type: 'Repositories', id }],
     }),
+
+    // Add a new repository
     addRepo: builder.mutation({
       query: (repo) => ({
-        url: 'repositories',
-        method: 'insert',
-        body: repo,
+        url: '/repositories',
+        method: 'POST',
+        body: repo, // Send the repository data to the backend
       }),
       invalidatesTags: ['Repositories'],
     }),
+
+    // Update an existing repository
     updateRepo: builder.mutation({
       query: ({ id, repo }) => ({
-        url: 'repositories',
-        method: 'update',
-        body: repo,
-        params: { id },
+        url: `/repositories/${id}`,
+        method: 'PUT',
+        body: repo, // Send updated repository data to the backend
       }),
-      invalidatesTags: ['Repositories'],
+      invalidatesTags: (result, error, { id }) => [{ type: 'Repositories', id }],
     }),
+
+    // Delete a repository by ID
     deleteRepo: builder.mutation({
       query: (id) => ({
-        url: 'repositories',
-        method: 'delete',
-        params: { id },
+        url: `/repositories/${id}`,
+        method: 'DELETE',
       }),
-      invalidatesTags: ['Repositories'],
+      invalidatesTags: (result, error, id) => [{ type: 'Repositories', id }],
     }),
   }),
 });
 
+// Export hooks for usage in functional components
 export const {
   useGetReposQuery,
   useGetRepoByIdQuery,
