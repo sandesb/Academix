@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux'; // Import useDispatch from Redux
+import { useDispatch } from 'react-redux'; 
 import { useGetMessagesQuery, useAddMessageMutation, useDeleteMessageMutation } from '../redux/messagesApi';
-import supabase from '../config/supabaseClient'; // Supabase client initialization
-import { Trash2 } from 'lucide-react'; // Lucide icon for delete
-import messagesApi from '../redux/messagesApi';
+import { Trash2 } from 'lucide-react'; 
+import { messagesApi } from '../redux/messagesApi';
+
 const Messages = () => {
-  const dispatch = useDispatch(); // Initialize dispatch
+  const dispatch = useDispatch(); 
   const { data: messages = [], error, isLoading } = useGetMessagesQuery();
   const [addMessage] = useAddMessageMutation();
   const [deleteMessage] = useDeleteMessageMutation();
@@ -15,69 +15,56 @@ const Messages = () => {
   const studentName = localStorage.getItem('studentName') || 'GUEST';
   const isAdmin = localStorage.getItem('adminIsAuthenticated') === 'true';
 
-  // Step 1: Initialize and subscribe to the channel once
+  // WebSocket connection to handle real-time updates
   useEffect(() => {
-    const channel = supabase.channel('room-1', {
-      config: { broadcast: { self: true } },
-    });
+    const ws = new WebSocket('ws://localhost:5000'); // Change this URL if your backend is hosted elsewhere
 
-    // Subscribe to broadcast messages
-    channel
-      .on('broadcast', { event: 'new-message' }, (payload) => {
-        console.log('Received broadcasted message:', payload);
-
-        // Safely extract message from the nested payload
-        const newMessage = payload?.payload?.message || {}; // Correct the path to message
-        
-        // Check for valid message structure
-        if (newMessage && newMessage.matric_no && newMessage.message_text && newMessage.created_at) {
-          // Dispatch the new message to the Redux store
-          dispatch(
-            messagesApi.util.updateQueryData('getMessages', undefined, (draft) => {
-              draft.unshift(newMessage); // Add the broadcasted message to the top
-            })
-          );
-        } else {
-          console.error('Received invalid message structure:', payload);
-        }
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('Successfully subscribed to channel room-1');
-        }
-      });
-
-    return () => {
-      // Cleanup: Unsubscribe when the component unmounts
-      supabase.removeChannel(channel);
+    ws.onmessage = (event) => {
+      const newMessage = JSON.parse(event.data); 
+      dispatch(
+        messagesApi.util.updateQueryData('getMessages', undefined, (draft) => {
+          draft.unshift(newMessage); // Add new message to the top of the messages list
+        })
+      );
     };
-  }, [dispatch]); // Ensure dispatch is included as a dependency
 
+    ws.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    ws.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    return () => ws.close(); // Close WebSocket connection on component unmount
+  }, [dispatch]);
+
+  // Handle sending a new message
   const handleSendMessage = async () => {
     if (!messageText.trim()) return; // Prevent sending empty messages
 
-    console.log('Sending Message:', messageText);
-    
- // Step 3: Broadcast the message to other clients
-const newMessage = {
-  message_text: messageText,
-  matric_no: matricNo,
-  student_name: studentName,
-  is_admin: isAdmin,
-  created_at: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kathmandu' }), // Nepal Time
-};
+    const newMessage = {
+      message_text: messageText,
+      matric_no: matricNo,
+      student_name: studentName,
+      is_admin: isAdmin,
+      created_at: new Date().toLocaleString('en-US', { timeZone: 'Asia/Kathmandu' }), // Nepal Time
+    };
 
+    // Send message to backend (POST request via RTK Query)
     await addMessage(newMessage);
 
-    // Broadcast the message to other users
-    const channel = supabase.channel('room-1'); // Get the existing channel
-    channel.send({
-      type: 'broadcast',
-      event: 'new-message',
-      payload: { message: newMessage }, // Broadcast correct message structure
-    });
+    // Clear the input field after sending
+    setMessageText('');
+  };
 
-    setMessageText(''); // Clear the input field after sending
+  // Handle deleting a message
+  const handleDeleteMessage = async (messageId) => {
+    const isConfirmed = window.confirm('Are you sure you want to delete this message?');
+    
+    if (isConfirmed) {
+      await deleteMessage(messageId); // Delete message via RTK Query mutation
+    }
   };
 
   // Handle the ENTER key to send a message
@@ -87,30 +74,20 @@ const newMessage = {
     }
   };
 
-  const handleDeleteMessage = async (messageId) => {
-    const isConfirmed = window.confirm('Are you sure you want to delete this message?');
-    
-    if (isConfirmed) {
-      console.log('Deleting message:', messageId);
-      await deleteMessage(messageId); // Call the mutation to delete the message
-    }
-  };
-
   return (
     <div className="chat-container  p-6 rounded-xl shadow-lg max-w-screen-md mx-auto lg:mt-10 mt-5">
-      
-       <div className="text-2xl font-medium mb-6 text-gray-700 text-center">
-       <h1 className="font-lato text-4xl lg:text-6xl mt-2 mb-2 font-semibold text-blue-400 tracking-widest relative">
+      <div className="text-2xl font-medium mb-6 text-gray-700 text-center">
+        <h1 className="font-lato text-4xl lg:text-6xl mt-2 mb-2 font-semibold text-blue-400 tracking-widest relative">
+          <span className="block lg:inline lg:pl-4">What's  Your  Sandes? 🕊</span>
+          <span className="absolute top-0 left-0 w-full h-full text-[#a2b5ea] transform translate-x-0.5 translate-y-0 -z-10 tracking-widest">
             <span className="block lg:inline lg:pl-4">What's  Your  Sandes? 🕊</span>
-            <span className="absolute top-0 left-0 w-full h-full text-[#a2b5ea] transform translate-x-0.5 translate-y-0 -z-10 tracking-widest">
-              <span className="block lg:inline lg:pl-4">What's  Your  Sandes? 🕊</span>
-            </span>
-            </h1>
-        </div>
+          </span>
+        </h1>
+      </div>
 
       {/* Messages Box */}
       <div className="messages-box max-h-80 overflow-y-auto p-4 bg-white rounded-lg shadow-inner space-y-4">
-        {/* Messages Loading/Error handling */}
+        {/* Loading/Error handling */}
         {isLoading && <p>Loading messages...</p>}
         {error && <p>Error loading messages...</p>}
         
