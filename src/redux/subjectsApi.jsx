@@ -60,10 +60,6 @@ export const subjectsApi = createApi({
   baseQuery: supabaseBaseQuery,
   tagTypes: ["Courses", "Content"],
   endpoints: (builder) => ({
-    // Fetch Courses
-    // Fetch Courses
-    // Fetch Courses
-    // Fetch Courses
 
     // Fetch Courses
     fetchCourses: builder.query({
@@ -71,23 +67,6 @@ export const subjectsApi = createApi({
       providesTags: ["Courses"],
     }),
 
-    getCourses: builder.query({
-      query: ({ matric = null }) => {
-        // Construct query parameter for matric filtering
-        let matricFilter = "is.null"; // Default to 'is.null' for admin or guest
-        if (matric !== "GUEST" && matric !== null) {
-          matricFilter = `eq.${matric}`; // Filter for specific matric number
-        }
-
-        return {
-          url: `subjects?matric=${matricFilter}`, // Use query parameter to filter based on matric value
-          method: "select", // Change method to GET, as Supabase expects GET for retrieval
-        };
-      },
-      providesTags: ["Courses"],
-    }),
-
-    // Add Course Mutation
     // Add Course Mutation
     addCourse: builder.mutation({
       async queryFn(course, _queryApi, _extraOptions, fetchWithBQ) {
@@ -154,7 +133,21 @@ export const subjectsApi = createApi({
       },
     }),
     
+    getCourses: builder.query({
+      query: ({ matric = null }) => {
+        // Construct query parameter for matric filtering
+        let matricFilter = "is.null"; // Default to 'is.null' for admin or guest
+        if (matric !== "GUEST" && matric !== null) {
+          matricFilter = `eq.${matric}`; // Filter for specific matric number
+        }
 
+        return {
+          url: `subjects?matric=${matricFilter}`, // Use query parameter to filter based on matric value
+          method: "select", // Change method to GET, as Supabase expects GET for retrieval
+        };
+      },
+      providesTags: ["Courses"],
+    }),
     // Update Course Mutation
     updateCourse: builder.mutation({
       query: ({ id, ...course }) => ({
@@ -181,7 +174,6 @@ export const subjectsApi = createApi({
         }
       },
     }),
-
     // Delete Course Mutation
     deleteCourse: builder.mutation({
       query: (id) => ({
@@ -350,7 +342,6 @@ addContentCopy: builder.mutation({
 export const {
   useGetCoursesQuery,
   useFetchCoursesQuery,
-
   useAddCourseMutation,
   useUpdateCourseMutation,
   useDeleteCourseMutation,

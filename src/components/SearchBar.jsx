@@ -31,7 +31,6 @@ const SearchBar = () => {
   };
 
   useEffect(() => {
-    console.log('Search results:', results); // Log the search results
   }, [results]);
 
   useEffect(() => {
