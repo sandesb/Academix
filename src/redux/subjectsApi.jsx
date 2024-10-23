@@ -235,6 +235,8 @@ export const subjectsApi = createApi({
       providesTags: ["Courses"],
     }),
 
+
+    
     viewContent: builder.query({
       query: ({ content_id }) => {
         console.log(`Fetching note for content_id: ${content_id}`); // Debugging log
@@ -254,8 +256,6 @@ export const subjectsApi = createApi({
       invalidatesTags: ["Content"],
     }),
 
-    // Edit Content Mutation with POST (for upsert)
-    // Update Content Mutation (for client-side with subjects_id)
     // Edit Content Mutation for admin (updating content based on content_id)
     editContent: builder.mutation({
       query: ({ content_id, content, name }) => ({
@@ -343,11 +343,11 @@ export const {
   useGetCoursesQuery,
   useFetchCoursesQuery,
   useAddCourseMutation,
+  useLoadContentQuery,
   useUpdateCourseMutation,
   useDeleteCourseMutation,
   useUpdateNoteMutation,
   useLoadNoteQuery,
-  useLoadContentQuery,
   useUpdateContentMutation,
   useEditContentMutation,
   useAddContentCopyMutation,

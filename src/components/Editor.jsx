@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import EditorJS from '@editorjs/editorjs';
 import { EDITOR_JS_TOOLS } from './Tool';
-import { useUpdateContentMutation } from '../redux/subjectsApi';
+import { useUpdateContentMutation } from '../redux/contentApi'; // Using contentApi
 
 // Debounce function to limit how often the save function is called
 function debounce(fn, delay) {
@@ -20,44 +20,46 @@ const Editor = ({ data, editorBlock, subjects_id, content_id, itemName, setSavin
 
   const saveContent = useCallback(
     debounce(async (newData) => {
-      const matricNo = localStorage.getItem('matricNo');  // Ensure matricNo is retrieved from localStorage
-      console.log('Checking matricNo from localStorage before saving:', matricNo);
-  
+      const matricNo = localStorage.getItem('matricNo');
+      console.log('Checking matricNo before saving:', matricNo);
+
       if (!matricNo) {
-        console.warn('Cannot save content. User is in guest mode (no matricNo found in localStorage).');
+        console.warn('Cannot save content. Guest mode (no matricNo found in localStorage).');
         setSaving('Cannot save in guest mode.');
         return;
       }
-  
+
       if (!subjects_id || !content_id) {
         console.error('subjects_id or content_id is undefined, cannot save content.');
         return;
       }
-  
+
       setSaving('saving'); // Set status to "Saving..."
-  
+      console.log('Sending the following content data to the backend:', {
+        content_id,
+        subjects_id,
+        matric: matricNo,
+        content: newData,
+        name: itemName,
+      });
+
       try {
-        // Use UPSERT to update or insert the row based on content_id and matric
         const result = await updateContent({
-          content_id,  // Use content_id to identify the row
-          subjects_id,  // Ensure subjects_id is passed correctly
-          matric: matricNo,  // Use matric to target the correct student
+          content_id,
+          subjects_id,
+          matric: matricNo,
           content: newData,  // Pass the updated content
           name: itemName,
         }).unwrap();
-  
-        console.log('Content successfully saved to Supabase:', result);
+
+        console.log('Content successfully saved to API:', result);
         setSaving('saved'); // Set status to "Saved"
       } catch (saveError) {
-        console.error('Error saving content to Supabase:', saveError);
+        console.error('Error saving content to API:', saveError);
       }
     }, 1000),
     [updateContent, subjects_id, content_id, itemName, setSaving]
   );
-  
-  
-  
-  
 
   useEffect(() => {
     if (!editorInstance.current && data) {
@@ -65,7 +67,7 @@ const Editor = ({ data, editorBlock, subjects_id, content_id, itemName, setSavin
         holder: editorBlock,
         data: data,
         tools: EDITOR_JS_TOOLS,
-        readOnly: readOnly, // Pass the readOnly state
+        readOnly: readOnly,
 
         onReady: () => {
           editorInstance.current = editor;
@@ -73,7 +75,7 @@ const Editor = ({ data, editorBlock, subjects_id, content_id, itemName, setSavin
         async onChange(api) {
           if (!readOnly) {
             const newData = await api.saver.save();
-            saveContent(newData); // Trigger save to Supabase if allowed
+            saveContent(newData); // Trigger save to API if allowed
           }
         },
       });
@@ -87,11 +89,7 @@ const Editor = ({ data, editorBlock, subjects_id, content_id, itemName, setSavin
     };
   }, [data, editorBlock, saveContent, readOnly]);
 
-  return (
-    <div>
-      <div id={editorBlock} />
-    </div>
-  );
+  return <div id={editorBlock} />;
 };
 
 export default Editor;
