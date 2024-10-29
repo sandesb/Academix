@@ -11,14 +11,22 @@ import {
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { logout } from '../../redux/adminSlice';
+import Cookies from 'js-cookie';
 
 export function UserNav() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    dispatch(logout()); // Clear the admin session
-    navigate('/admin'); // Redirect to admin login page
+    // Remove tokens from cookies
+    Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
+
+    // Clear the admin session in Redux
+    dispatch(logout());
+
+    // Redirect to admin login page
+    navigate('/admin');
   };
 
   return (

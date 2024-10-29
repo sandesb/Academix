@@ -4,8 +4,26 @@
 @tailwind utilities;
 /* Global CSS file */
 
+.repositories-container {
+  background-color: #f9fafb;
+}
 
+.filters .filter {
+  background-color: #f1f5f9;
+  color: #374151;
+  padding: 8px 16px;
+  border-radius: 24px;
+}
 
+.repository-cards .repo-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
 .bg-sidebar-active {
   background-color: #f0f4fc; /* Background color of the active link */
@@ -30,13 +48,11 @@
   width: 100%; /* Ensure editors take up full width within their containers */
 }
 
-
 .editorjs-container .ce-block__content {
   justify-content: flex-start !important;
   text-align: left !important;
   margin-left: 2% !important;
-  max-width: 100%;  /* example value, adjust for your own use case */
-
+  max-width: 100%; /* example value, adjust for your own use case */
 }
 
 /* src/index.css or any global CSS file */
@@ -44,7 +60,6 @@
 /* Align Editor.js toolbars to the left */
 .editorjs-container .ce-toolbar__plus {
   right: 10 !important; /* Ensure the plus button is aligned to the left */
-
 }
 
 .editorjs-container .ce-block__content {
@@ -54,7 +69,6 @@
 .editorjs-container .ce-toolbar__content {
   justify-content: flex-start !important; /* Ensure the toolbar content is aligned to the left */
   margin-right: 27% !important;
-
 }
 
 .editorjs-container .ce-toolbar__settings-btn {
@@ -70,5 +84,3 @@
 .editorjs-container .ce-toolbar__actions {
   justify-content: flex-start !important;
 }
-
-

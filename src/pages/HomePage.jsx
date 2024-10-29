@@ -2,26 +2,22 @@ import React, { useState } from 'react';
 import Card from '../components/Card';
 import useCart from '../hooks/useCart';
 import LoadingSpinner from '../components/LoadingSpinner';
-import ItemDialog from '../components/ItemDialog'; // Import the ItemDialog
+import ItemDialog from '../components/ItemDialog';
 import {
   useGetSubjectsQuery,
   useUpdateSubjectMutation,
   useDeleteSubjectMutation,
-} from '../redux/subjectApi'; // Update to import the subject API hooks
+} from '../redux/subjectApi';
 import DeleteDialog from '../components/DeleteDialog';
 import AddCart from '../components/AddCart';
 
 const HomePage = () => {
   const { handlePlusClick } = useCart();
 
-  // Get values from localStorage
   const adminIsAuthenticated = localStorage.getItem('adminIsAuthenticated') === 'true';
   const matricNo = localStorage.getItem('matricNo');
-
-  // Determine matric value based on conditions
   const matricValue = adminIsAuthenticated ? null : matricNo || 'GUEST';
 
-  // Fetch subjects based on the matric value
   const { data: subjects = [], error, isLoading, refetch } = useGetSubjectsQuery({ matric: matricValue });
 
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
@@ -37,7 +33,7 @@ const HomePage = () => {
       const { data, error } = await updateSubject(updatedSubject).unwrap();
       if (error) throw error;
       console.log('Subject updated successfully:', data);
-      refetch(); // Refetch subjects to reflect the update
+      refetch();
     } catch (error) {
       console.error('Failed to update subject:', error);
     }
@@ -79,20 +75,26 @@ const HomePage = () => {
   return (
     <div className="">
       <div className="py-2 px-6">
-
-      <h1 className="font-lato text-4xl lg:text-6xl mt-2 mb-2 font-semibold text-blue-400 tracking-widest text-center relative">
-        <span className="block lg:inline">Know Your</span>
-        <span className="block lg:inline lg:pl-4">Academix</span>
-        <span className="absolute top-0 left-0 w-full h-full text-[#a2b5ea] transform translate-x-0.5 translate-y-0 -z-10 tracking-widest">
+        <h1 className="font-lato text-4xl lg:text-6xl mt-2 mb-2 font-semibold text-blue-400 tracking-widest text-center relative">
           <span className="block lg:inline">Know Your</span>
           <span className="block lg:inline lg:pl-4">Academix</span>
-        </span>
-      </h1>
+          <span className="absolute top-0 left-0 w-full h-full text-[#a2b5ea] transform translate-x-0.5 translate-y-0 -z-10 tracking-widest">
+            <span className="block lg:inline">Know Your</span>
+            <span className="block lg:inline lg:pl-4">Academix</span>
+          </span>
+        </h1>
 
-      <div className="py-2 px-6">
-        <AddCart refetch={refetch} />
+        <div className="py-2 px-6">
+          <AddCart refetch={refetch} />
         </div>
 
+        {/* Conditionally display undraw.svg and team.svg if no subjects are available */}
+        {subjects.length === 0 && (
+          <div className="flex justify-center py-4">
+            <img src="/src/assets/team.svg" alt="Illustration" className="w-full max-w-sm" />
+            <img src="/src/assets/undraw.svg" alt="Illustration" className="w-full max-w-xs" />
+          </div>
+        )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {subjects
@@ -109,20 +111,20 @@ const HomePage = () => {
                 onPlusClick={handlePlusClick}
                 onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}
-                onTitleClick={handleTitleClick} // Pass handleTitleClick to Card
+                onTitleClick={handleTitleClick}
               />
             ))}
         </div>
-        {/* ItemDialog to show details and edit notes */}
+
         {selectedItem && (
           <ItemDialog
             isOpen={isDialogOpen}
             onClose={closeDialog}
-            item={selectedItem} // Pass the selected item
+            item={selectedItem}
           />
         )}
       </div>
-      {/* Render DeleteDialog */}
+
       <DeleteDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useDispatch } from 'react-redux';
@@ -36,9 +37,21 @@ const formSchema = z.object({
 
 export function UserAuthForm({ className, ...props }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [credentials, setCredentials] = useState(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { data: admins } = useGetAdminCredentialsQuery();
+
+  // Check for access token on component mount
+  useEffect(() => {
+    const accessToken = Cookies.get('accessToken');
+    if (accessToken) {
+      // Redirect to dashboard if token exists
+      navigate('/admin/dashboard');
+    }
+  }, [navigate]);
+
+  // Skip initial query with `skip: true`
+  const { data: response, error } = useGetAdminCredentialsQuery(credentials, { skip: !credentials });
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -48,20 +61,26 @@ export function UserAuthForm({ className, ...props }) {
     },
   });
 
+  useEffect(() => {
+    if (response) {
+      const { accessToken, refreshToken } = response;
+
+      Cookies.set('accessToken', accessToken, { expires: 0.02 }); // Set cookie for 30 seconds
+      Cookies.set('refreshToken', refreshToken, { expires: 1 / 24 }); // Set cookie for 1 hour
+
+      dispatch(loginSuccess({ email: credentials.email }));
+
+      navigate('/admin/dashboard');
+    } else if (error) {
+      console.error('Authentication error:', error);
+      alert(error?.message || 'Invalid email or password');
+    }
+    setIsLoading(false);
+  }, [response, error, credentials, dispatch, navigate]);
+
   async function onSubmit(data) {
     setIsLoading(true);
-
-    const admin = admins?.find((admin) => admin.email === data.email);
-
-    if (admin && admin.password === data.password) {
-      // Store the admin login in Redux and localStorage
-      dispatch(loginSuccess({ email: admin.email }));
-      navigate('/admin/dashboard'); // Redirect to the dashboard
-    } else {
-      alert('Invalid email or password');
-    }
-
-    setIsLoading(false);
+    setCredentials(data);
   }
 
   return (

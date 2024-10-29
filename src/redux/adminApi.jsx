@@ -15,17 +15,21 @@ export const adminApi = createApi({
   baseQuery: baseQuery,
   tagTypes: ['Admin'],
   endpoints: (builder) => ({
-    // Fetch only email and password from the admin table
     getAdminCredentials: builder.query({
-      query: () => '/admin', // Call the Express endpoint to fetch all admin
-      transformResponse: (response) => response.map(admin => ({
-        email: admin.email,
-        password: admin.password,
-      })), // Transform the response to return only email and password fields
+      query: ({ email, password }) => ({
+        url: '/admin/login',
+        method: 'GET',
+        params: { email, password },
+      }),
+      transformResponse: (response) => ({
+        accessToken: response.accessToken,
+        refreshToken: response.refreshToken,
+      }),
       providesTags: ['Admin'],
     }),
   }),
 });
+
 
 // Export hooks for usage in functional components
 export const { useGetAdminCredentialsQuery } = adminApi;

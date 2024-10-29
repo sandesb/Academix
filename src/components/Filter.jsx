@@ -25,10 +25,10 @@ const Filter = ({ title, options, selectedOptions, onSelect }) => {
   return (
     <div className="relative inline-block text-left mr-4">
       {/* Dropdown button */}
-      <div className="inline-flex items-center overflow-hidden rounded-md border bg-white">
+      <div className="inline-flex items-center overflow-hidden rounded-md border bg-gray-50">
         <button
           type="button"
-          className="border-e px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-700"
+          className="border-e px-4 py-2 text-sm text-gray-600 hover:bg-white hover:text-gray-700"
           onClick={toggleDropdown}
         >
           {title}

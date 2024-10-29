@@ -4,10 +4,13 @@ const cors = require("cors");
 const WebSocket = require("ws"); // WebSocket
 const subjectsRoutes = require('./routes/subjects'); // Import the course routes
 const contentRoutes = require('./routes/content'); // Import the content routes
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api/v1/superadmins', adminRoutes);
+app.use('/admin', adminRoutes);
 
 // WebSocket server setup
 const wss = new WebSocket.Server({ noServer: true });
@@ -34,16 +37,16 @@ app.use('/api', subjectsRoutes); // Use the course routes under the /api path
   
 
 // Route to fetch all admin
-app.get("/admin", async (req, res) => {
-  try {
-    // Query the database to get all admin
-    const result = await pool.query("SELECT * FROM admin");
-    res.json(result.rows); // Send the result as a JSON response
-  } catch (err) {
-    console.error("Error fetching admin:", err);
-    res.status(500).json({ error: "Server error while fetching admin" });
-  }
-});
+// app.get("/admin", async (req, res) => {
+//   try {
+//     // Query the database to get all admin
+//     const result = await pool.query("SELECT * FROM admin");
+//     res.json(result.rows); // Send the result as a JSON response
+//   } catch (err) {
+//     console.error("Error fetching admin:", err);
+//     res.status(500).json({ error: "Server error while fetching admin" });
+//   }
+// });
 
 // Route to fetch all messages
 app.get("/messages", async (req, res) => {
@@ -210,7 +213,7 @@ app.delete("/students/:id", async (req, res) => {
 app.get("/repositories", async (req, res) => {
   try {
     const result = await pool.query(
-      `SELECT matric, id, title, source_name, image_url, abstract, project_report_url, tech_stack FROM repositories ORDER BY created_at DESC`
+      `SELECT matric, id, title, source_name, image_url, abstract, project_report_url, project_source_code_url, tech_stack FROM repositories ORDER BY created_at DESC`
     );
     res.json(result.rows);
   } catch (err) {
@@ -302,6 +305,7 @@ app.put("/repositories/:id", async (req, res) => {
     tech_stack,
   } = req.body;
 
+  // Validate required fields
   if (!title || !matric || !project_report_url || !project_source_code_url) {
     return res.status(400).json({ error: "Missing required fields" });
   }
@@ -309,8 +313,9 @@ app.put("/repositories/:id", async (req, res) => {
   try {
     const result = await pool.query(
       `UPDATE repositories 
-       SET title = $1, source_name = $2, image_url = $3, abstract = $4, matric = $5, project_report_url = $6, project_source_code_url = $7
-       WHERE id = $8 RETURNING *`,
+       SET title = $1, source_name = $2, image_url = $3, abstract = $4, matric = $5, 
+           project_report_url = $6, project_source_code_url = $7, tech_stack = $8
+       WHERE id = $9 RETURNING *`,
       [
         title,
         source_name,
@@ -319,7 +324,7 @@ app.put("/repositories/:id", async (req, res) => {
         matric,
         project_report_url,
         project_source_code_url,
-        tech_stack,
+        JSON.stringify(tech_stack), // Convert tech_stack to JSON format
         id,
       ]
     );
@@ -334,6 +339,7 @@ app.put("/repositories/:id", async (req, res) => {
     res.status(500).json({ error: "Server error while updating repository" });
   }
 });
+
 
 // Route to delete a repository by ID
 app.delete("/repositories/:id", async (req, res) => {
