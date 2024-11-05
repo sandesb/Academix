@@ -65,11 +65,11 @@ export default function Sidebar({
               strokeLinejoin='round'
               strokeWidth='16'
             ></line>
-            <span className='sr-only'>Website Name</span>
+            <span className='sr-only'>Academix</span>
           </svg>
           <div className={`flex flex-col justify-end truncate ${isCollapsed ? 'invisible w-0' : 'visible w-auto'}`}>
-            <span className='font-medium'>Shadcn Admin</span>
-            <span className='text-xs'>Vite + ShadcnUI</span>
+            <span className='font-medium'>Academix Admin</span>
+            <span className='text-xs'>Sandesh Bajracharya</span>
           </div>
         </div>
 

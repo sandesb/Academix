@@ -7,7 +7,6 @@ import { useUpdateNoteMutation, useLoadNoteQuery } from '../redux/subjectsApi';
 import { useNavigate } from 'react-router-dom';
 import { useAddContentCopyMutation } from '../redux/subjectsApi'; // Ensure correct import
 import supabase from '../config/supabaseClient';
-import { useHandleStudyClick } from '../hooks/useHandleStudyClick'; // Path to your custom hook
 const ItemDialog = ({ isOpen, onClose, item }) => {
   const { data: loadedNote, isLoading } = useLoadNoteQuery(item?.id, {
     skip: !item?.id || !isOpen,
@@ -15,11 +14,6 @@ const ItemDialog = ({ isOpen, onClose, item }) => {
 
   const [updateNote] = useUpdateNoteMutation();
   const [addContentCopy] = useAddContentCopyMutation(); // Mutation hook
-  const { handleStudyClick, loading, error } = useHandleStudyClick();
-
-  const onStudyClick = () => {
-    handleStudyClick(item); // Call the custom hook with the subject item
-  };
 
   const [comment, setComment] = useState('');
   const navigate = useNavigate();
@@ -51,12 +45,131 @@ const ItemDialog = ({ isOpen, onClose, item }) => {
       }
     }
   };
+  
+  
 
   const calculateProgressWidth = (progress) => {
     if (!progress) return 0;
     const [current, total] = progress.split(' h / ').map(parseFloat);
     return (current / total) * 100;
   };
+
+  const handleStudyClick = async () => {
+    const matricNo = localStorage.getItem('matricNo'); // Get matric no from local storage
+    const isGuest = !matricNo; // Check if the user is a guest
+  
+    try {
+      if (isGuest) {
+        // Guest Mode: Show content where matric is NULL
+        console.log('Guest mode: Fetching content where matric is NULL for subject_id:', item.id);
+  
+        // Fetch the original content where matric is NULL
+        const { data: guestContent, error: guestError } = await supabase
+          .from('content')
+          .select('*')
+          .eq('subjects_id', item.id)
+          .is('matric', null); // Fetch content with NULL matric for guests
+  
+        if (guestError) {
+          console.error('Error fetching guest content:', guestError);
+          return;
+        }
+  
+        if (!guestContent || guestContent.length === 0) {
+          console.error('No original content found for guest mode with subject_id:', item.id);
+          return;
+        }
+  
+        // Proceed to navigate to the notes page with guest content
+        console.log('Navigating to notes page with guest content.');
+        navigate(`/notes/${item.id}`, { state: { title: item.title, content: guestContent } });
+        return;
+      }
+  
+      // For logged-in users (i.e., matricNo exists)
+      console.log('Checking if content for subject_id:', item.id, 'and matric:', matricNo, 'already exists.');
+  
+      // Check if content for the current subject and matric_no already exists
+      const { data: existingContent, error: checkError } = await supabase
+        .from('content')
+        .select('*')
+        .eq('subjects_id', item.id)
+        .eq('matric', matricNo); // Check if content for this student already exists
+  
+      if (checkError) {
+        console.error('Error checking existing content:', checkError);
+        return;
+      }
+  
+      if (existingContent && existingContent.length > 0) {
+        // Content already exists for this subject and matric number
+        console.log('Content already copied for subject_id:', item.id, 'and matric:', matricNo);
+      } else {
+        // Proceed to fetch and copy if no content exists for this subject and matric
+        console.log('No existing content found, proceeding with copying.');
+  
+        // Fetch the original content data to copy
+        const { data: originalContent, error: fetchError } = await supabase
+          .from('content')
+          .select('note')
+          .eq('subjects_id', item.id)
+          .is('matric', null); // Fetch the admin's original data (where matric is null)
+  
+        if (fetchError) {
+          console.error('Error fetching original content:', fetchError);
+          return;
+        }
+  
+        if (!originalContent || originalContent.length === 0) {
+          console.error('No original content found to copy for subject_id:', item.id);
+          return;
+        }
+  
+        const copiedNote = originalContent[0].note; // Get the original note content
+        console.log('Copying this note:', copiedNote);
+  
+        // Create the new content object
+        const newContent = {
+          subjects_id: item.id,  // Same subject ID
+          name: item.title,      // Subject's title/name
+          note: copiedNote,      // Copy the original note content
+          matric: matricNo       // Set the matric number for the student
+        };
+  
+        console.log('Inserting new content:', newContent);
+  
+        // Use the mutation to insert the content copy
+        try {
+          const { data, error: insertError } = await addContentCopy(newContent).unwrap();
+  
+          if (insertError) {
+            console.error('Error copying content:', insertError);
+          } else {
+            console.log('Content copy created successfully:', data);
+          }
+        } catch (err) {
+          console.error('Error inserting new content:', err);
+        }
+      }
+  
+      // Navigate to the notes page regardless of whether copying happened
+      navigate(`/notes/${item.id}`, { state: { title: item.title } });
+    } catch (err) {
+      console.error('Error during copy operation:', err);
+      // Ensure navigation happens even if there is an error
+      navigate(`/notes/${item.id}`, { state: { title: item.title } });
+    }
+  };
+  
+  
+  
+  
+  
+  
+  
+  
+  
+
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
@@ -108,7 +221,7 @@ const ItemDialog = ({ isOpen, onClose, item }) => {
               </div>
               <div className="flex justify-between mt-2">
                 <button
-                  onClick={onStudyClick} 
+                  onClick={handleStudyClick} // Handle navigation to Notes page
                   className="bg-[#7F9CEA] text-white px-4 py-2 rounded-lg"
                 >
                   Study

@@ -6,70 +6,69 @@ import AddCart from "../components/AddCart";
 import ItemDialog from "../components/ItemDialog"; // Import the ItemDialog
 
 import {
-  useFetchSubjectsQuery,  // Replacing useFetchCoursesQuery
-  useUpdateSubjectMutation,  // Replacing useUpdateCourseMutation
-  useDeleteSubjectMutation,  // Replacing useDeleteCourseMutation
-} from "../redux/subjectApi"; // Replace with subjectApi
+  useFetchCoursesQuery,
+  useAddCourseMutation,
+  useUpdateCourseMutation,
+  useDeleteCourseMutation,
+} from "../redux/subjectsApi";
 import DeleteDialog from "../components/DeleteDialog";
 
 const MyCourses = () => {
   const { handlePlusClick } = useCart();
-  
-  // Fetching subjects (previously courses)
   const {
-    data: subjects = [], // Rename 'courses' to 'subjects'
+    data: courses = [],
     error,
     isLoading,
     refetch,
-  } = useFetchSubjectsQuery(); // Replace with useFetchSubjectsQuery
-  
-  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  } = useFetchCoursesQuery();
+  const [selectedCourseId, setSelectedCourseId] = useState(null);
 
-  const [updateSubject] = useUpdateSubjectMutation(); // Replace updateCourse with updateSubject
-  const [deleteSubject] = useDeleteSubjectMutation(); // Replace deleteCourse with deleteSubject
+  const [addCourse] = useAddCourseMutation();
+  const [updateCourse] = useUpdateCourseMutation();
+  const [deleteCourse] = useDeleteCourseMutation();
 
   const [selectedItem, setSelectedItem] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const handleEditClick = async (updatedSubject) => {
+  const handleEditClick = async (updatedCourse) => {
     try {
-      console.log("Updating subject:", updatedSubject);
+      console.log("Updating course:", updatedCourse);
 
-      const { data, error } = await updateSubject(updatedSubject).unwrap(); // Replacing updateCourse with updateSubject
+      const { data, error } = await updateCourse(updatedCourse).unwrap();
 
       if (error) throw error;
 
-      console.log("Subject updated successfully:", data);
+      console.log("Course updated successfully:", data);
 
-      refetch(); // Refetch subjects to reflect the update
+      refetch(); // Refetch courses to reflect the update
     } catch (error) {
-      console.error("Failed to update subject:", error);
+      console.error("Failed to update course:", error);
     }
   };
 
   const handleDeleteClick = (id) => {
-    setSelectedSubjectId(id); // Set the selected subject ID
+    setSelectedCourseId(id);
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
     try {
-      await deleteSubject(selectedSubjectId).unwrap(); // Replacing deleteCourse with deleteSubject
-      console.log("Deleted subject with id:", selectedSubjectId);
+      await deleteCourse(selectedCourseId).unwrap();
+      console.log("Deleted course with id:", selectedCourseId);
       setDeleteDialogOpen(false);
 
-      refetch(); // Refetch subjects after deletion
+      refetch();
     } catch (error) {
-      console.error("Failed to delete subject:", error);
-      showToast("error", "Failed to delete subject. Please try again.");
+      console.error("Failed to delete course:", error);
+      showToast("error", "Failed to delete course. Please try again.");
     }
   };
 
   const handleTitleClick = (id) => {
-    const selectedSubject = subjects.find((subject) => subject.id === id); // Use 'subjects' instead of 'courses'
-    if (selectedSubject) {
-      setSelectedItem(selectedSubject);
+    const selectedCourse = courses.find((course) => course.id === id);
+    if (selectedCourse) {
+      setSelectedItem(selectedCourse);
       setIsDialogOpen(true);
     }
   };
@@ -89,22 +88,23 @@ const MyCourses = () => {
 
   return (
     <div className="">
-      <h1 className="text-2xl font-medium mb-6 text-gray-700 text-center">My Subjects</h1>
+          <h1 className="text-2xl font-medium mb-6 text-gray-700 text-center">My Courses</h1>
+
 
       <div className="py-2 px-6">
         <AddCart refetch={refetch} />
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {subjects
+          {courses
             .slice()
             .reverse()
-            .map((subject) => (
+            .map((course) => (
               <Card
-                key={subject.id}
-                id={subject.id}
-                title={subject.title}
-                progress={subject.progress}
-                icon={subject.icon}
-                bgColor={subject.bgColor}
+                key={course.id}
+                id={course.id}
+                title={course.title}
+                progress={course.progress}
+                icon={course.icon}
+                bgColor={course.bgColor}
                 onPlusClick={handlePlusClick}
                 onEditClick={handleEditClick}
                 onDeleteClick={handleDeleteClick}

@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import InputField from "./InputField";
 import { v4 as uuidv4 } from "uuid";
-import { useAddSubjectMutation } from "../redux/subjectApi"; // Update import to use subjectApi
+import { useAddCourseMutation } from "../redux/subjectsApi";
 
 const AddCart = ({ refetch }) => {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
   const [work, setWork] = useState("");
-  const [addSubject] = useAddSubjectMutation(); // Use addSubject instead of addCourse
+  const [addCourse] = useAddCourseMutation();
 
   const handleAddClick = async () => {
     const workHours = parseInt(work, 10);
@@ -27,43 +27,57 @@ const AddCart = ({ refetch }) => {
     }
 
     // Generate unique content_id and subjects_id
-    const contentId = uuidv4();
-    const subjectsId = uuidv4();
+    const contentId = uuidv4(); // Generate a unique content_id
+    const subjectsId = uuidv4(); // Replace this with the actual subject_id if you have it stored elsewhere
 
-    // Create the new subject object
-    const newSubject = {
+    // Create the new course object for subjects
+    const newCourse = {
       id: uuidv4(),
       title: name,
       progress: `0 / ${workHours}`,
       icon: emoji,
       bgColor: "from-blue-100 to-blue-300",
-      matric: matricValue,
-      content_id: contentId,
-      subjects_id: subjectsId,
-      note: `{
-        "time": 1729351709073,
-        "blocks": [
-          {
-            "id": "56BN6lrTNl",
-            "data": {
-              "text": "write here..."
-            },
-            "type": "paragraph"
-          }
-        ],
-        "version": "2.30.5"
-      }`, // Adjust this to your actual content note
+      matric: matricValue, // Add matric to the course object
+      subjects_id: subjectsId, // Valid UUID for subjects_id
     };
 
     try {
       // Insert into subjects table
-      const { data: subjectsData, error: subjectsError } = await addSubject(
-        newSubject
+      const { data: subjectsData, error: subjectsError } = await addCourse(
+        newCourse
       );
       if (subjectsError) throw subjectsError;
-      console.log("Added subject to subjects:", subjectsData);
+      console.log("Added course to subjects:", subjectsData);
 
-      // Refetch subjects after adding a new one
+      // Insert into content table
+      const { data: contentData, error: contentError } = await fetchWithBQ({
+        url: "content",
+        method: "POST",
+        body: {
+          name: name,
+          content_id: contentId,
+          matric: matricValue, // Add matric to content table
+          subjects_id: subjectsId, // Insert the same valid subjects_id
+          note: `{
+  "time": 1729351709073,
+  "blocks": [
+    {
+      "id": "56BN6lrTNl",
+      "data": {
+        "text": "write here..."
+      },
+      "type": "paragraph"
+    }
+  ],
+  "version": "2.30.5"
+}`, // Adjust this to your actual content note
+        },
+      });
+
+      if (contentError) throw contentError;
+      console.log("Added content:", contentData);
+
+      // Refetch courses after adding a new one
       refetch();
 
       // Reset input fields
@@ -71,7 +85,7 @@ const AddCart = ({ refetch }) => {
       setEmoji("");
       setWork("");
     } catch (error) {
-      console.error("Failed to add subject:", error);
+      console.error("Failed to add course:", error);
     }
   };
 

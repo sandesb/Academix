@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import Editor from '../components/Editor';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useParams, useLocation } from 'react-router-dom';
-import { useLoadContentQuery } from '../redux/contentApi';
+import { useLoadContentQuery } from '../redux/subjectsApi';
 
 const Notes = () => {
   const { id } = useParams();  // This is the subjects_id from the URL
@@ -39,7 +39,7 @@ const Notes = () => {
           {
             type: "header",
             data: {
-              text: "Write anything ...",
+              text: "Write anything here...",
               level: 1
             }
           }
