@@ -84,3 +84,29 @@
 .editorjs-container .ce-toolbar__actions {
   justify-content: flex-start !important;
 }
+
+/* Custom scrollbar styling */
+#chat-box::-webkit-scrollbar {
+  width: 8px; /* Adjust width for a thinner scrollbar */
+}
+
+#chat-box::-webkit-scrollbar-track {
+  background: #f0f4f8; /* Light background color for the track */
+  border-radius: 10px;
+}
+
+#chat-box::-webkit-scrollbar-thumb {
+  background-color: #a3b5e9; /* Color of the scrollbar handle */
+  border-radius: 10px;
+  border: 2px solid #f0f4f8; /* Adds padding around the thumb */
+}
+
+#chat-box::-webkit-scrollbar-thumb:hover {
+  background-color: #a3b5e9; /* Lighter shade on hover */
+}
+
+/* Mozilla Firefox custom scrollbar styling */
+#chat-box {
+  scrollbar-width: thin; /* Reduces width of the scrollbar */
+  scrollbar-color: #a3b5e9 #f0f4f8; /* thumb color and track color */
+}

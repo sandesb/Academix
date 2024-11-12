@@ -5,6 +5,7 @@ const WebSocket = require("ws"); // WebSocket
 const subjectsRoutes = require('./routes/subjects'); // Import the course routes
 const contentRoutes = require('./routes/content'); // Import the content routes
 const adminRoutes = require('./routes/admin');
+const chatRoutes = require('./routes/chat'); // Import the chat route
 
 const app = express();
 app.use(cors());
@@ -35,6 +36,7 @@ const broadcastMessage = (message) => {
 app.use('/api', contentRoutes); // Register the content routes
 app.use('/api', subjectsRoutes); // Use the course routes under the /api path
   
+app.use('/api', chatRoutes);
 
 // Route to fetch all admin
 // app.get("/admin", async (req, res) => {

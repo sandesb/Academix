@@ -1,7 +1,9 @@
+// routes/admin.js
 const express = require('express');
 const router = express.Router();
-const adminController = require('../controllers/adminController');
+const adminController = require('../controllers/AdminController');
 
-router.get('/login', adminController.loginAdmin); // Use GET method as requested
+// Using GET method as requested
+router.get('/login', adminController.login.bind(adminController));
 
 module.exports = router;

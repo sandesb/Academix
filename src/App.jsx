@@ -24,6 +24,7 @@ import Content from './admin/pages/content/page';
 import NotesBox from './admin/pages/content/compare/notesBox';
 import AddRepositories from './pages/AddRepositories';
 import RepoDetails from './pages/RepoDetails';
+import Chat from './pages/Chat';
 
 function App() {
   const dispatch = useDispatch();
@@ -72,6 +73,8 @@ function App() {
           <Route path="/edit-repo/:id" element={<AddRepositories />} />
           <Route path="/repo/:id" element={<RepoDetails />} />
           <Route path="/messages" element={<Messages />} />
+          <Route path="/ai" element={<Chat />} />
+
           <Route path="/help-center" element={<HelpCenter />} />
           <Route path="/notes/:id" element={<Notes />} />
         </Route>

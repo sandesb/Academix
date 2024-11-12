@@ -4,6 +4,7 @@ import subjectsApi from './subjectsApi';
 import subjectApi from './subjectApi';
 import studentsApi from './studentsApi';
 import contentApi from './contentApi';
+import chatApi from './chatApi';
 
 
 
@@ -22,6 +23,8 @@ export const store = configureStore({
     [subjectApi.reducerPath]: subjectApi.reducer,
     [studentsApi.reducerPath]: studentsApi.reducer,
     [contentApi.reducerPath]: contentApi.reducer,
+    [chatApi.reducerPath]: chatApi.reducer,
+
 
 
 
@@ -39,6 +42,7 @@ export const store = configureStore({
       .concat(subjectApi.middleware)
       .concat(studentsApi.middleware)
       .concat(contentApi.middleware)
+      .concat(chatApi.middleware)
 
 
 
